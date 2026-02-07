@@ -18,13 +18,10 @@ log_file="$log_dir/audit.log"
 # Ensure log directory exists
 mkdir -p "$log_dir"
 
-# Truncate tool_input to prevent massive log entries (e.g., file writes)
-if [ ${#tool_input} -gt 500 ]; then
-  tool_input="${tool_input:0:497}..."
-fi
-
-# Append log entry
-echo "{\"ts\":\"$timestamp\",\"session\":\"$session_id\",\"tool\":\"$tool_name\",\"input\":$tool_input}" >> "$log_file"
+# Build log entry as valid JSON (jq handles escaping; truncate via string slice)
+echo "$json" | jq -c --arg ts "$timestamp" --arg sid "$session_id" --arg tool "$tool_name" \
+  '{ts: $ts, session: $sid, tool: $tool, input: (.tool_input // {} | tostring[:500])}' \
+  >> "$log_file"
 
 # Never block — just log
 exit 0

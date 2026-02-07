@@ -18,13 +18,10 @@ dangerous_patterns=(
   "chmod 777"
   "chmod -R 777"
   "> /dev/sda"
-  "> /dev/null"
   "mkfs."
   ":(){:|:&};:"
   "dd if=/dev"
   "wget -O - | sh"
-  "curl.*| sh"
-  "curl.*| bash"
   "git push --force origin main"
   "git push --force origin master"
   "git reset --hard"
@@ -48,6 +45,9 @@ dangerous_regex=(
   'find\s+.*-fprintf\b'
   # find -delete can remove files with find's privileges
   'find\s+.*-delete\b'
+  # curl/wget piped to shell — remote code execution
+  'curl\s+.*\|\s*(sh|bash|zsh)'
+  'wget\s+.*\|\s*(sh|bash|zsh)'
 )
 
 for pattern in "${dangerous_regex[@]}"; do

@@ -20,8 +20,8 @@ esac
 if [ "$tool_name" = "Bash" ] && [ -n "$command" ]; then
   # Reject anything with shell operators that could enable writes
   # (pipes to tee/dd, redirections, command substitution tricks, etc.)
-  if echo "$command" | grep -qE '>\s|>>' ; then
-    # Contains output redirection — not safe, let the normal permission flow handle it
+  if echo "$command" | grep -qE '>\s|>>|[|]' ; then
+    # Contains output redirection or pipe — not safe, let the normal permission flow handle it
     exit 0
   fi
 

@@ -91,7 +91,14 @@ fi
 
 # Run the test if found
 if [ -n "$test_cmd" ]; then
-  test_output=$(timeout 30 bash -c "$test_cmd" 2>&1)
+  # Use gtimeout on macOS (coreutils), timeout on Linux, fallback to no timeout
+  timeout_cmd=""
+  if command -v timeout &>/dev/null; then
+    timeout_cmd="timeout 30"
+  elif command -v gtimeout &>/dev/null; then
+    timeout_cmd="gtimeout 30"
+  fi
+  test_output=$($timeout_cmd bash -c "$test_cmd" 2>&1)
   test_exit=$?
 
   if [ $test_exit -ne 0 ]; then
