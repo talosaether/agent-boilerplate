@@ -99,8 +99,9 @@ if [ -n "$test_cmd" ]; then
     if [ ${#test_output} -gt 2000 ]; then
       test_output="${test_output:0:1997}..."
     fi
-    test_output=$(echo "$test_output" | jq -Rs '.')
-    echo "{\"hookSpecificOutput\":{\"additionalContext\":\"Test failures after editing $file_path:\\n\"${test_output}}}"
+    # Escape for JSON (prepend label before escaping so it's one valid JSON string)
+    test_output=$(printf "Test failures after editing %s:\n%s" "$file_path" "$test_output" | jq -Rs '.')
+    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":$test_output}}"
   fi
 fi
 

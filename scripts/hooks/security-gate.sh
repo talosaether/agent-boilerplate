@@ -34,7 +34,7 @@ dangerous_patterns=(
 for pattern in "${dangerous_patterns[@]}"; do
   if [[ "$command" == *"$pattern"* ]]; then
     reason="Blocked by security gate: matches dangerous pattern '$pattern'"
-    echo "{\"hookSpecificOutput\":{\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"$reason\"}}"
+    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"$reason\"}}"
     exit 0
   fi
 done
@@ -53,7 +53,7 @@ dangerous_regex=(
 for pattern in "${dangerous_regex[@]}"; do
   if echo "$command" | grep -qE "$pattern"; then
     reason="Blocked by security gate: matches dangerous pattern '$pattern'. If you need to search for files, use the Glob tool instead."
-    echo "{\"hookSpecificOutput\":{\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"$reason\"}}"
+    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"$reason\"}}"
     exit 0
   fi
 done

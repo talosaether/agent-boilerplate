@@ -52,9 +52,9 @@ if [ $lint_exit -ne 0 ] && [ -n "$lint_output" ]; then
   if [ ${#lint_output} -gt 2000 ]; then
     lint_output="${lint_output:0:1997}..."
   fi
-  # Escape for JSON
-  lint_output=$(echo "$lint_output" | jq -Rs '.')
-  echo "{\"hookSpecificOutput\":{\"additionalContext\":\"Lint errors in $file_path:\\n\"${lint_output}}}"
+  # Escape for JSON (prepend label before escaping so it's one valid JSON string)
+  lint_output=$(printf "Lint errors in %s:\n%s" "$file_path" "$lint_output" | jq -Rs '.')
+  echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":$lint_output}}"
 fi
 
 exit 0

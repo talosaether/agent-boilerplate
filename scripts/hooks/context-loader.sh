@@ -62,7 +62,7 @@ fi
 # Output context for Claude
 if [ -n "$context" ]; then
   context=$(echo -e "$context" | jq -Rs '.')
-  echo "{\"hookSpecificOutput\":{\"additionalContext\":$context}}"
+  echo "{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":$context}}"
 fi
 
 exit 0

@@ -30,7 +30,7 @@ for pattern in "${protected_patterns[@]}"; do
   # Use bash extended globbing for matching
   if [[ "$file_path" == $pattern ]]; then
     reason="Blocked by path protector: '$file_path' matches protected pattern '$pattern'"
-    echo "{\"hookSpecificOutput\":{\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"$reason\"}}"
+    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"$reason\"}}"
     exit 0
   fi
 done

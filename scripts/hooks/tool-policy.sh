@@ -50,7 +50,7 @@ while [ "$i" -lt "$rule_count" ]; do
     if [ "$blocked" = true ]; then
       # Escape message for JSON
       escaped_message=$(echo "$message" | sed 's/"/\\"/g')
-      echo "{\"hookSpecificOutput\":{\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Tool policy: $escaped_message\"}}"
+      echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Tool policy: $escaped_message\"}}"
       exit 0
     fi
   fi
