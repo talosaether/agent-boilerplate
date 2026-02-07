@@ -11,7 +11,7 @@ command=$(echo "$json" | jq -r '.tool_input.command // empty')
 # Read-only tools — always safe
 case "$tool_name" in
   Read|Glob|Grep|WebSearch|WebFetch)
-    echo '{"hookSpecificOutput":{"behavior":"allow"}}'
+    echo '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}'
     exit 0
     ;;
 esac
@@ -31,15 +31,16 @@ if [ "$tool_name" = "Bash" ] && [ -n "$command" ]; then
   # Safe read-only commands
   case "$base_cmd" in
     ls|cat|head|tail|wc|file|which|whoami|pwd|date|uname|env|printenv)
-      echo '{"hookSpecificOutput":{"behavior":"allow"}}'
+      echo '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}'
       exit 0
       ;;
     git)
       # Only allow read-only git subcommands
-      git_subcmd=$(echo "$command" | grep -oP 'git\s+\K\S+')
+      # Strip "git" prefix and any -C <path> / -c key=val flags to find the subcommand
+      git_subcmd=$(echo "$command" | sed 's/^git //' | sed 's/^-[Cc] *[^ ]* *//' | awk '{print $1}')
       case "$git_subcmd" in
-        status|log|diff|show|branch|tag|remote|stash\ list|rev-parse|describe|shortlog|blame)
-          echo '{"hookSpecificOutput":{"behavior":"allow"}}'
+        status|log|diff|show|branch|tag|remote|stash|rev-parse|describe|shortlog|blame)
+          echo '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}'
           exit 0
           ;;
       esac
@@ -47,16 +48,16 @@ if [ "$tool_name" = "Bash" ] && [ -n "$command" ]; then
     node|python|python3)
       # Only allow version checks
       if echo "$command" | grep -qE '^(node|python3?)\s+--version$'; then
-        echo '{"hookSpecificOutput":{"behavior":"allow"}}'
+        echo '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}'
         exit 0
       fi
       ;;
     gh)
       # Only allow read operations
-      gh_subcmd=$(echo "$command" | grep -oP 'gh\s+\K\S+')
+      gh_subcmd=$(echo "$command" | sed 's/^gh //' | awk '{print $1}')
       case "$gh_subcmd" in
         pr\ view|pr\ list|issue\ view|issue\ list|api|repo\ view|run\ list|run\ view)
-          echo '{"hookSpecificOutput":{"behavior":"allow"}}'
+          echo '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}'
           exit 0
         ;;
       esac
