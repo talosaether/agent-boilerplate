@@ -7,7 +7,7 @@ Boilerplate for multi-agent orchestration in Claude Code. Four layers: **agents*
 | Agent | Tools | Purpose |
 |-------|-------|---------|
 | `reader` | Read, Glob, Grep | Read-only codebase exploration |
-| `builder` | All | Full implementation (edit, write, bash, etc.) |
+| `builder` | Read, Glob, Grep, Edit, Write, Bash, Task, NotebookEdit | Full implementation (no web access) |
 | `reviewer` | Read, Glob, Grep, git read commands | Code review without write access |
 | `researcher` | Read, Glob, Grep, WebSearch, WebFetch | Web + codebase research |
 

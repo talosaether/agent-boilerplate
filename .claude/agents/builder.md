@@ -1,5 +1,13 @@
 ---
-# No allowed_tools restriction -- builder has full access
+allowed_tools:
+  - "Read"
+  - "Glob"
+  - "Grep"
+  - "Edit"
+  - "Write"
+  - "Bash"
+  - "Task"
+  - "NotebookEdit"
 ---
 
 # Builder Agent
