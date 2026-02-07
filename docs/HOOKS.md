@@ -181,7 +181,7 @@ To add a safe command:
 
 ```bash
     your_cmd)
-      echo '{"hookSpecificOutput":{"behavior":"allow"}}'
+      echo '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}'
       exit 0
       ;;
 ```
@@ -250,33 +250,79 @@ protected_patterns=(
 )
 ```
 
-## Gotchas (from 6 months of production use)
+## Hook Output Formats
 
-### 1. Matchers are case-sensitive
+Every hook that returns JSON must include `hookEventName` in `hookSpecificOutput`. Without it, Claude Code silently ignores the response.
+
+### PreToolUse (block dangerous operations)
+
+```json
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: reason"}}
+```
+
+- `permissionDecision`: `"allow"` | `"deny"` | `"ask"`
+- `permissionDecisionReason`: required when allow or deny
+
+### PostToolUse (feed context back to Claude)
+
+```json
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"Lint errors:\n..."}}
+```
+
+- `additionalContext`: string injected into Claude's context
+
+### PermissionRequest (auto-allow safe operations)
+
+```json
+{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}
+```
+
+- `decision.behavior`: `"allow"` | `"deny"`
+- Note: `decision` is an **object** here, unlike PreToolUse where `permissionDecision` is a string
+
+### SessionStart (inject startup context)
+
+```json
+{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Branch: main\n..."}}
+```
+
+### Hooks that don't return decisions
+
+`Stop`, `SubagentStop`, `Notification`, and `PreCompact` hooks perform side effects only (logging, backups, notifications). They don't need to return `hookSpecificOutput` -- just `exit 0`.
+
+## Gotchas
+
+### 1. hookEventName is required
+The most common mistake. If your hook returns JSON but has no effect, check that `hookEventName` matches the event type exactly (`"PreToolUse"`, `"PostToolUse"`, `"PermissionRequest"`, `"SessionStart"`).
+
+### 2. Matchers are case-sensitive
 `"bash"` does NOT match `"Bash"`. Tool names are PascalCase: `Bash`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `WebFetch`, `WebSearch`.
 
-### 2. Timeout defaults to 60 seconds
+### 3. Timeout defaults to 60 seconds
 Hooks that take longer fail **silently**. Set explicit timeouts for anything slow:
 ```json
 { "type": "command", "command": "./scripts/hooks/slow-hook.sh", "timeout": 300 }
 ```
 
-### 3. Multiple tools use pipe syntax
+### 4. Multiple tools use pipe syntax
 ```json
 { "matcher": "Edit|Write" }
 ```
 NOT `"Edit, Write"` or `["Edit", "Write"]`.
 
-### 4. PostToolUse can't undo actions
+### 5. PostToolUse can't undo actions
 It can only react. Use `PreToolUse` to block, `PostToolUse` to lint/test/log.
 
-### 5. Hook output must be valid JSON
+### 6. Hook output must be valid JSON
 Malformed JSON causes silent failures. Always test scripts standalone:
 ```bash
 echo '{"tool_name":"Bash","tool_input":{"command":"ls"}}' | ./scripts/hooks/security-gate.sh
 ```
 
-### 6. Keep hooks fast
+### 7. grep -P doesn't work on macOS
+Use `sed` + `awk` instead of `grep -oP` for portable argument extraction. macOS ships with BSD grep which lacks Perl regex support.
+
+### 8. Keep hooks fast
 Target under 5 seconds per hook. The article reports ~1.5s average per tool call with 8 hooks. Slow hooks degrade the interactive experience.
 
 ## Audit Log
