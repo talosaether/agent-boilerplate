@@ -18,7 +18,7 @@ Create a handoff document that captures the current session's context for a futu
    - Any failing tests or known issues
 3. Draft a handoff document using `template.md`
 4. Present to the user for review and edits
-5. Save to the location the user specifies (default: `docs/handoff-<date>.md`)
+5. Save to the location the user specifies (default: `docs/handoff-<date>T<HHMM>.md`, e.g. `docs/handoff-2026-02-19T2100.md`)
 
 ## Rules
 
