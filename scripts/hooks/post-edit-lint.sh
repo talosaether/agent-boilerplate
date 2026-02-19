@@ -22,12 +22,34 @@ if [[ "$file_path" =~ \.(js|ts|jsx|tsx|mjs|cjs)$ ]]; then
 
 # --- Python ---
 elif [[ "$file_path" =~ \.py$ ]]; then
+  if command -v black &>/dev/null; then
+    fmt_output=$(black --check --quiet "$file_path" 2>&1)
+    if [ $? -ne 0 ]; then
+      black --quiet "$file_path" 2>/dev/null
+      lint_output="black reformatted $file_path"
+      lint_exit=1
+    fi
+  fi
+  if command -v isort &>/dev/null; then
+    isort_output=$(isort --check --quiet "$file_path" 2>&1)
+    if [ $? -ne 0 ]; then
+      isort --quiet "$file_path" 2>/dev/null
+      lint_output="${lint_output:+$lint_output\n}isort reformatted $file_path"
+      lint_exit=1
+    fi
+  fi
   if command -v ruff &>/dev/null; then
-    lint_output=$(ruff check "$file_path" 2>&1)
-    lint_exit=$?
+    ruff_output=$(ruff check "$file_path" 2>&1)
+    if [ $? -ne 0 ]; then
+      lint_output="${lint_output:+$lint_output\n}$ruff_output"
+      lint_exit=1
+    fi
   elif command -v flake8 &>/dev/null; then
-    lint_output=$(flake8 "$file_path" 2>&1)
-    lint_exit=$?
+    flake8_output=$(flake8 "$file_path" 2>&1)
+    if [ $? -ne 0 ]; then
+      lint_output="${lint_output:+$lint_output\n}$flake8_output"
+      lint_exit=1
+    fi
   fi
 
 # --- Rust ---

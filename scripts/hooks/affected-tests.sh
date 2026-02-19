@@ -60,7 +60,7 @@ elif [[ "$file_path" =~ \.py$ ]]; then
   else
     dir=$(dirname "$file_path")
     name=$(basename "${file_path%.py}")
-    for candidate in "$dir/test_$name.py" "$dir/${name}_test.py" "$dir/tests/test_$name.py"; do
+    for candidate in "$dir/test_$name.py" "$dir/${name}_test.py" "$dir/tests/test_$name.py" "tests/test_$name.py"; do
       if [ -f "$candidate" ]; then
         test_file="$candidate"
         break
@@ -69,7 +69,7 @@ elif [[ "$file_path" =~ \.py$ ]]; then
   fi
   if [ -n "$test_file" ]; then
     if command -v pytest &>/dev/null; then
-      test_cmd="pytest '$test_file' -x -q 2>&1"
+      test_cmd="PYTHONPATH=. pytest '$test_file' -x -q 2>&1"
     fi
   fi
 
