@@ -10,6 +10,17 @@ if [ -z "$file_path" ]; then
   exit 0
 fi
 
+# Project boundary: reject writes outside the project root
+project_root=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -n "$project_root" ]; then
+  resolved=$(cd "$(dirname "$file_path")" 2>/dev/null && pwd -P)/$(basename "$file_path") 2>/dev/null || resolved="$file_path"
+  if [[ "$resolved" != "$project_root"* ]]; then
+    reason="Blocked by path protector: '$file_path' is outside the project root '$project_root'"
+    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"$reason\"}}"
+    exit 0
+  fi
+fi
+
 # Normalize: strip leading ./ if present
 file_path="${file_path#./}"
 

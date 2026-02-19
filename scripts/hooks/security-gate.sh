@@ -58,5 +58,14 @@ for pattern in "${dangerous_regex[@]}"; do
   fi
 done
 
+# Block git operations targeting other repositories
+# Match git -C or --git-dir at the start of a command or after a separator (&&, ;, |)
+# but not inside quoted strings (e.g., commit messages)
+if echo "$command" | grep -qE '(^|&&|;|\|)\s*git\s+(-C|--git-dir)\s+'; then
+  reason="Blocked by security gate: git operations outside the current repository are not allowed"
+  echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"$reason\"}}"
+  exit 0
+fi
+
 # Allow everything else
 exit 0
